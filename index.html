@@ -67,7 +67,7 @@
 
         .hour, .day {
             min-width: 90px;
-            padding: 10 px;
+            padding: 10px;
             border: 1px solid #ddd;
             text-align: center;
         }
@@ -180,18 +180,18 @@
         }
 
         function temperature(value) {
-        return `${Math.round(value)}°$(unit === "fahrenheit" ? "F" : "C")`;
+        return `${Math.round(value)}°${unit === "fahrenheit" ? "F" : "C"}`;
         }
 
         function timeLabel(value) {
             return new 
-        Date(value).toLocaleTimeString([, {
-            hour: "numberic"
-        }]);
+        Date(value).toLocaleTimeString([],{hour: "numeric"
+
+        });
         }
 
         function dateLabel(value) {
-            return new Date(value + "T12:00:00").toLocalDateString([], {
+            return new Date(value + "T12:00:00").toLocaleDateString([], {
                 weekday: "short",
                 month: "short",
                 day: "numeric"
@@ -256,7 +256,7 @@
 
         const data = await response.json();
 
-        if (!data.current ||data.hourly || !data.daily) {
+        if (!data.current || !data.hourly || !data.daily) {
             throw new Error("Weather data is unavailable.");
         }
 
@@ -272,7 +272,7 @@
             place.name,
             place.admin1,
             place.country
-        ].filter(Boolean).join(",");
+        ].filter(Boolean).join(", ");
         
         $("condition").textContent =
         getCondition(current.weather_code);
@@ -283,7 +283,8 @@
         $("feelsLike").textContent =
         "Feels like: " +
     temperature(current.apparent_temperature);
-
+        $("humidity").textContent =
+        "Humidity: " + current.relative_humidity_2m + "%";
         $("wind").textContent =
         "Wind: " +
     Math.round(current.wind_speed_10m) +
@@ -358,7 +359,7 @@
                 low.textContent = "Low: " +
                 temperature(daily.temperature_2m_min[index]);
 
-                const high = document.createElemet("p");
+                const high = document.createElement("p");
                     high.textContent = "High: " +
 
                 temperature(daily.temperature_2m_max[index]);
@@ -410,7 +411,7 @@
         }
 
         $("unitButton").textContent =
-        unit === "fahrenheit" ? "°F" / "°C" : "°C" / "°F";
+        unit === "fahrenheit" ? "°F / °C" : "°C / °F";
 
         });
 
