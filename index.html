@@ -156,7 +156,8 @@
 
         let unit = "fahrenheit";
         let currentPlace = null;
-
+        let favorites = loadList("favorites");
+        let recent = loadList("recent");
         const conditions = {
             0: "Clear Sky",
             1: "Mainly clear",
@@ -209,6 +210,68 @@
                 month: "short",
                 day: "numeric"
             })
+        }
+
+        function loadList(name) {
+            try {
+                return JSON.parse(localStorage.getItem(name)) || [];
+            } catch (error) {
+                return [];
+            }
+        }
+        function saveList(name,list) {
+            try {
+                localStorage.setItem(name,JSON.stringify(list));
+            } catch (error) {
+                return;
+            }
+        }
+
+        function placeKey(place) {
+            return [place.name, place.admin1, place.country]. join("|");
+        }
+
+        function simplePlace(place) {
+            return {
+                name: place.name,
+                admin1: place.admin1,
+                country: place.country,
+                latitude: place.latitude,
+                longitude: place.longitude
+            };
+        }
+
+        function isFavorite(place) {
+            return favorites.some(item => placeKey (item) === placeKey(place));
+        }
+
+        function renderPlacelist(containerId, list) {
+            const container = $(containerId);
+            container.replace.Children();
+
+            if (list.length === 0) {
+                container.textContent = "None";
+                return;
+            }
+
+            list.forEach(place => { const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = place.name;
+
+            button.addEventListener("click", () => {$("cityInput").value = place.name;
+                loadWeather(place);
+            });
+            container.append(button);
+            });
+        }
+
+        function renderLists() {
+            renderPlaceList("favorites", favorites);
+            renderPlaceList("recent", recent);
+
+            $("favoriteButton").textContent = 
+                currentPlace && isFavorite(currentPlace) ?
+                "Remove favorite" : "Add favorite";
         }
     async function searchCity(name) {
         const response = await fetch(
@@ -382,16 +445,18 @@
             });
       }
         
-        async function loadWeather(name) {
+        async function loadWeather(nameOrPlace) {
             $("status").textContent = "Loading weather...";
             $("weather").hidden = true;
             try {
-                const place = await
-            searchCity(name);
-                const data = await
-            getWeather(place);
-
+                const place = typeof nameOrPlace === "string" ?
+                await searchCity(nameOrPlace): nameOrPlace;
+                const data = await getWeather(place);
                 currentPlace = place;
+                recent = [simplePlace(place)].concat(recent.filter(item => placeKey(item) !== placeKey(place))
+            ).slice(0,6);
+            saveList("recent", recent);
+            renderLists();
                 renderWeather(place,data);
             } catch (error) {
                 $("status").textContent =
@@ -404,6 +469,22 @@
             const city =
         $("cityInput").value.trim();
             if (city) loadWeather(city);
+    });
+
+    $("favoriteButton").addEventListener("click", () => {
+        if (!currentPlace) reutrn;
+
+        if (isFavorite(currentPlace)) {
+            favorites = favorites.filter(
+                item => placeKey(item) !== placeKey(currentPlace)
+            );
+        } else {
+
+            favorites.push(simplePlace(currentPlace));
+        }
+
+        saveList("favorites", favorites);
+        renderLists();
     });
 
     $("unitButton").addEventListener("click", async () => {
@@ -428,6 +509,7 @@
 
         });
 
+        renderLists();
         loadWeather("Jersey City");
     </script>
     </body>
