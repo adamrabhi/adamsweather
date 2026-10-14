@@ -134,8 +134,11 @@
             <p id="feelsLike"></p>
             <p id="humidity"></p>
             <p id="wind"></p>
+            <p id="pressure"></p>
+            <p id="uv"></p>
         </div>
             <p id="highLow"></p>
+            <p id="sun"></p>
         </section>
 
         <section class="section">
@@ -204,6 +207,12 @@
         });
         }
 
+        function sunlabel(value) {
+            return new Date(value).toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit"
+            });
+        }
         function dateLabel(value) {
             return new Date(value + "T12:00:00").toLocaleDateString([], {
                 weekday: "short",
@@ -308,7 +317,9 @@
                 "apparent_temperature",
                 "relative_humidity_2m",
                 "weather_code",
-                "wind_speed_10m"
+                "wind_speed_10m",
+                "surface_pressure",
+                "uv_index"
                 ].join(","),
                 hourly: [
                     "temperature_2m",
@@ -317,7 +328,9 @@
                 daily: [
                     "weather_code",
                     "temperature_2m_max",
-                    "temperature_2m_min"
+                    "temperature_2m_min",
+                    "sunrise",
+                    "sunset"
                 ].join(","),
                 forecast_days: 7
         });
@@ -365,13 +378,19 @@
         "Wind: " +
     Math.round(current.wind_speed_10m) +
         (unit === "fahrenheit" ? " mph" : " km/h");
-
+        $("pressure").textContent =
+        "Pressure: " +
+        Math.round(current.surface_pressure) + " hPa";
+        ("uv").textContent =
+        "UV index: " + Math.round(current.uv_index);
         $("highLow").textContent =
         "High: " +
     temperature(daily.temperature_2m_max[0]) +
         " | Low: " +
     temperature(daily.temperature_2m_min[0]);
-
+        $("sun").textContent = "Sunrise: " +
+        sunLabel(daily.sunrise[0]) +
+        " | Sunset: " + sunLabel(daily.sunset[0]);
         renderHourly(data.hourly,current.time);
 
         renderDaily(daily);
